@@ -1,0 +1,1365 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TRM Colombia</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f4f4f2;
+    --surface: #fcfcfb;
+    --border: #e3e2de;
+    --grid: #ecebe7;
+    --text-1: #0b0b0b;
+    --text-2: #52514e;
+    --text-3: #7a7974;
+    --series: #2a78d6;
+    --series-fill: rgba(42, 120, 214, .10);
+    --accent-bg: #e8f0fb;
+    --warn-bg: #fdf3dc;
+    --warn-text: #7a5300;
+    --error-bg: #fbe5e5;
+    --error-text: #8f1d1d;
+    --skeleton: #e9e8e4;
+    --cat-1: #2a78d6; --cat-2: #eb6834; --cat-3: #1baf7a; --cat-4: #eda100;
+    --div-neg: #1c5cab; --div-mid: #f0efec; --div-pos: #c43c3c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #121211;
+      --surface: #1a1a19;
+      --border: #2d2d2b;
+      --grid: #262624;
+      --text-1: #f0efec;
+      --text-2: #c3c2b7;
+      --text-3: #8f8e86;
+      --series: #3987e5;
+      --series-fill: rgba(57, 135, 229, .16);
+      --accent-bg: #1d2b3d;
+      --warn-bg: #3a2e12;
+      --warn-text: #f1cf7e;
+      --error-bg: #3d1c1c;
+      --error-text: #f3b0b0;
+      --skeleton: #2a2a28;
+      --cat-1: #3987e5; --cat-2: #d95926; --cat-3: #199e70; --cat-4: #c98500;
+      --div-neg: #5598e7; --div-mid: #383835; --div-pos: #e66767;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #121211; --surface: #1a1a19; --border: #2d2d2b; --grid: #262624;
+    --text-1: #f0efec; --text-2: #c3c2b7; --text-3: #8f8e86;
+    --series: #3987e5; --series-fill: rgba(57, 135, 229, .16);
+    --accent-bg: #1d2b3d; --warn-bg: #3a2e12; --warn-text: #f1cf7e;
+    --error-bg: #3d1c1c; --error-text: #f3b0b0; --skeleton: #2a2a28;
+    --cat-1: #3987e5; --cat-2: #d95926; --cat-3: #199e70; --cat-4: #c98500;
+    --div-neg: #5598e7; --div-mid: #383835; --div-pos: #e66767;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text-1);
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px 40px; }
+
+  header {
+    display: flex; flex-wrap: wrap; align-items: flex-end;
+    justify-content: space-between; gap: 12px 24px; margin-bottom: 20px;
+  }
+  h1 { font-size: 22px; margin: 0; letter-spacing: -.01em; }
+  .subtitle { margin: 2px 0 0; color: var(--text-2); font-size: 14px; }
+  .actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .updated { color: var(--text-2); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+  button { font: inherit; cursor: pointer; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px; border-radius: 8px;
+    border: 1px solid var(--series); background: var(--series); color: #fff;
+    font-weight: 600; font-size: 14px;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn:disabled { opacity: .65; cursor: progress; }
+  .btn:focus-visible, .range button:focus-visible { outline: 2px solid var(--series); outline-offset: 2px; }
+  .spinner {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.45); border-top-color: #fff;
+    display: none; animation: spin .8s linear infinite;
+  }
+  .btn.loading .spinner { display: inline-block; }
+  .btn.loading .icon { display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .notice {
+    display: none; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 14px;
+  }
+  .notice.show { display: flex; }
+  .notice.warn { background: var(--warn-bg); color: var(--warn-text); }
+  .notice.error { background: var(--error-bg); color: var(--error-text); }
+  .notice button {
+    background: transparent; border: 1px solid currentColor; color: inherit;
+    border-radius: 6px; padding: 4px 10px; font-size: 13px; white-space: nowrap;
+  }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; }
+  .range52 { margin-top: 10px; }
+  .range52-track { position: relative; height: 6px; border-radius: 3px; background: var(--grid); }
+  .range52-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--series-fill); }
+  .range52-mark {
+    position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px;
+    border-radius: 50%; background: var(--series); border: 2px solid var(--surface);
+  }
+  .range52-ends { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+  .range52-ends span:last-child { text-align: right; }
+
+  .tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+  .tools h2, .table-card h2 { font-size: 16px; margin: 0 0 12px; }
+  .field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text-2); font-weight: 600; }
+  .field-row { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+  .field-row .field { flex: 1 1 160px; min-width: 0; }
+  input[type="date"], input[type="text"] {
+    font: inherit; font-size: 15px; color: var(--text-1); background: var(--bg);
+    border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; width: 100%;
+    font-variant-numeric: tabular-nums;
+  }
+  input:focus-visible { outline: 2px solid var(--series); outline-offset: 1px; }
+  .btn-ghost {
+    border: 1px solid var(--border); background: var(--surface); color: var(--text-1);
+    border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 600;
+  }
+  .btn-ghost:hover { background: var(--bg); }
+  .btn-ghost:disabled { opacity: .45; cursor: default; }
+  .btn-ghost:focus-visible { outline: 2px solid var(--series); outline-offset: 2px; }
+  .result { margin-top: 14px; }
+  .result .value { font-size: 26px; }
+  .conv-unit { display: inline-block; min-width: 38px; }
+
+  .table-card { margin-top: 16px; }
+  .table-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .table-head h2 { margin: 0; }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+  th, td { padding: 8px 10px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+  th { text-align: left; color: var(--text-2); font-size: 12px; font-weight: 600; }
+  th.num, td.num { text-align: right; }
+  th button {
+    all: unset; cursor: pointer; display: inline-flex; gap: 4px; align-items: center;
+  }
+  th button:focus-visible { outline: 2px solid var(--series); outline-offset: 2px; border-radius: 3px; }
+  th button .sort { color: var(--text-3); font-size: 10px; }
+  tbody tr:hover { background: var(--bg); }
+  .pager { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; color: var(--text-2); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 18px; min-width: 0;
+  }
+  .card.hero { background: var(--accent-bg); border-color: transparent; }
+  .label { color: var(--text-2); font-size: 13px; font-weight: 600; margin: 0 0 6px; }
+  .value {
+    font-size: 30px; font-weight: 700; letter-spacing: -.02em; line-height: 1.15;
+    font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
+  }
+  .value.text { font-size: 20px; letter-spacing: -.01em; }
+  .value small { white-space: nowrap; font-size: 14px; font-weight: 600; color: var(--text-2); margin-left: 4px; letter-spacing: 0; }
+  .meta { color: var(--text-2); font-size: 13px; margin-top: 6px; }
+  .delta-arrow { font-size: 20px; margin-right: 4px; }
+
+  .skeleton .value, .skeleton .meta {
+    color: transparent; background: var(--skeleton); border-radius: 6px;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  .skeleton .value { width: 70%; } .skeleton .meta { width: 50%; }
+  @keyframes pulse { 50% { opacity: .5; } }
+
+  .chart-card { padding: 16px 18px 12px; }
+  .chart-head {
+    display: flex; flex-wrap: wrap; align-items: center;
+    justify-content: space-between; gap: 10px; margin-bottom: 8px;
+  }
+  .chart-head h2 { font-size: 16px; margin: 0; }
+  .chart-head .meta { margin: 2px 0 0; }
+  .range {
+    display: flex; flex-wrap: wrap; gap: 2px; padding: 3px;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  }
+  .range button {
+    border: 0; background: transparent; color: var(--text-2);
+    padding: 5px 10px; border-radius: 6px; font-size: 13px; font-weight: 600;
+  }
+  .range button[aria-pressed="true"] { background: var(--surface); color: var(--text-1); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+
+  .chart { position: relative; height: 340px; touch-action: pan-y; }
+  .chart svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .axis text { fill: var(--text-3); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .gridline { stroke: var(--grid); stroke-width: 1; }
+  .baseline { stroke: var(--border); stroke-width: 1; }
+  .line { fill: none; stroke: var(--series); stroke-width: 2; stroke-linejoin: round; }
+  .area { fill: var(--series-fill); }
+  .cross { stroke: var(--text-3); stroke-width: 1; stroke-dasharray: 3 3; }
+  .dot { fill: var(--series); stroke: var(--surface); stroke-width: 2; }
+  .tooltip {
+    position: absolute; pointer-events: none; display: none;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 10px; font-size: 13px; box-shadow: 0 4px 14px rgba(0,0,0,.12);
+    white-space: nowrap; font-variant-numeric: tabular-nums;
+  }
+  .tooltip .t-date { color: var(--text-2); }
+  .tooltip .t-val { font-weight: 700; font-size: 15px; }
+  .chart-empty {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: var(--text-3); font-size: 14px;
+  }
+
+  /* ---- Fase 3 ---- */
+  .chart-opts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 0 0 8px; font-size: 13px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text-2);
+    border-radius: 999px; padding: 4px 10px; font-size: 13px; font-weight: 600;
+  }
+  .chip[aria-pressed="true"] { color: var(--text-1); border-color: var(--text-3); }
+  .chip:disabled { opacity: .45; cursor: not-allowed; }
+  .chip:focus-visible { outline: 2px solid var(--series); outline-offset: 2px; }
+  .chip.static { cursor: default; }
+  .sw { width: 12px; height: 3px; border-radius: 2px; background: var(--sw, var(--text-3)); flex: none; }
+  .chip[aria-pressed="false"] .sw { background: transparent; box-shadow: inset 0 0 0 1px var(--text-3); height: 8px; width: 8px; border-radius: 50%; }
+  .chart-note { color: var(--text-3); font-size: 12px; }
+  .vol-wrap { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--grid); }
+  .vol-wrap h3, .section-card h3 { font-size: 14px; margin: 0; }
+  .chart.small { height: 150px; }
+  .tooltip .t-row { display: flex; align-items: center; gap: 6px; }
+  .tooltip .t-row b { margin-left: auto; padding-left: 12px; }
+  .dlabel { fill: var(--text-2); font-size: 12px; font-weight: 600; }
+
+  .section-card { margin-top: 16px; }
+  .years { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 6px; scrollbar-width: thin; }
+  .years .chip { flex: none; }
+
+  .heat-scroll { overflow-x: auto; padding-bottom: 4px; }
+  .heat-grid {
+    display: grid; grid-template-columns: 34px repeat(31, minmax(14px, 1fr)); gap: 2px;
+    min-width: 560px; font-size: 10px; color: var(--text-3); font-variant-numeric: tabular-nums;
+  }
+  .heat-grid .hl { display: flex; align-items: center; justify-content: center; }
+  .heat-grid .hm { justify-content: flex-start; font-size: 11px; color: var(--text-2); }
+  .hc { aspect-ratio: 1; border-radius: 3px; }
+  .hc.val { box-shadow: inset 0 0 0 1px rgba(0,0,0,.05); cursor: default; }
+  .hc.val:hover { outline: 2px solid var(--text-1); outline-offset: -1px; }
+  .hc.covered, .lg-covered { background: repeating-linear-gradient(135deg, var(--grid) 0 2px, transparent 2px 5px); }
+  .hc.empty { box-shadow: inset 0 0 0 1px var(--grid); }
+  .heat-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin-top: 12px; font-size: 12px; color: var(--text-2); }
+  .lg-scale { display: flex; align-items: center; gap: 8px; }
+  .lg-bar { width: 160px; height: 10px; border-radius: 3px; background: linear-gradient(90deg, var(--div-neg), var(--div-mid), var(--div-pos)); }
+  .lg-covered { width: 14px; height: 14px; border-radius: 3px; display: inline-block; vertical-align: middle; margin-right: 6px; }
+  .heat-wrap { position: relative; }
+  select {
+    font: inherit; font-size: 14px; color: var(--text-1); background: var(--bg);
+    border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;
+  }
+
+  footer { margin-top: 20px; color: var(--text-3); font-size: 12px; }
+  footer a { color: var(--text-2); }
+
+  @media (min-width: 1021px) {
+    .kpis .value { font-size: 26px; }
+    .kpis .value.text { font-size: 20px; }
+    .kpis .value small { font-size: 13px; }
+  }
+  @media (max-width: 1020px) {
+    .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 760px) {
+    .kpis, .tools { grid-template-columns: 1fr; gap: 12px; }
+    .value { font-size: 26px; }
+    .chart { height: 260px; }
+    header { align-items: flex-start; }
+    .range { width: 100%; flex-wrap: nowrap; justify-content: space-between; }
+    .range button { padding: 5px 6px; flex: 1 1 auto; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>TRM · Peso colombiano / Dólar</h1>
+      <p class="subtitle">Tasa de Cambio Representativa del Mercado (COP por 1 USD)</p>
+    </div>
+    <div class="actions">
+      <span class="updated" id="updated" aria-live="polite">Última actualización: —</span>
+      <button class="btn" id="refresh" type="button">
+        <span class="icon" aria-hidden="true">↻</span><span class="spinner" aria-hidden="true"></span>
+        Actualizar
+      </button>
+    </div>
+  </header>
+
+  <div class="notice" id="notice" role="status">
+    <span id="notice-text"></span>
+    <button type="button" id="retry">Reintentar</button>
+  </div>
+
+  <section class="kpis" id="kpis" aria-label="Indicadores">
+    <div class="card hero skeleton" id="card-current">
+      <p class="label">TRM vigente hoy</p>
+      <div class="value" id="current-value">0.000,00</div>
+      <div class="meta" id="current-meta">cargando</div>
+    </div>
+    <div class="card skeleton" id="card-delta">
+      <p class="label">Variación vs. TRM anterior</p>
+      <div class="value" id="delta-value">0,00</div>
+      <div class="meta" id="delta-meta">cargando</div>
+    </div>
+    <div class="card skeleton" id="card-next">
+      <p class="label">Próxima TRM</p>
+      <div class="value" id="next-value">0.000,00</div>
+      <div class="meta" id="next-meta">cargando</div>
+    </div>
+    <div class="card skeleton" id="card-52">
+      <p class="label">Rango 52 semanas</p>
+      <div class="meta" id="r52-meta">cargando</div>
+      <div class="range52" aria-hidden="true">
+        <div class="range52-track"><div class="range52-fill" id="r52-fill"></div><div class="range52-mark" id="r52-mark"></div></div>
+      </div>
+      <div class="range52-ends">
+        <span id="r52-min">Mín. —</span><span id="r52-max">Máx. —</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card chart-card" aria-labelledby="chart-title">
+    <div class="chart-head">
+      <div>
+        <h2 id="chart-title">Histórico de la TRM</h2>
+        <p class="meta" id="chart-meta">&nbsp;</p>
+      </div>
+      <div class="range" id="range" role="group" aria-label="Rango de fechas">
+        <button type="button" data-range="7d">7D</button>
+        <button type="button" data-range="1m">1M</button>
+        <button type="button" data-range="3m">3M</button>
+        <button type="button" data-range="6m">6M</button>
+        <button type="button" data-range="ytd">Año</button>
+        <button type="button" data-range="1y" aria-pressed="true">1A</button>
+        <button type="button" data-range="5y">5A</button>
+        <button type="button" data-range="all">Todo</button>
+      </div>
+    </div>
+    <div class="chart-opts" role="group" aria-label="Series del gráfico">
+      <span class="chip static" style="--sw: var(--series)"><span class="sw"></span>TRM</span>
+      <button type="button" class="chip" data-ma="ma20" aria-pressed="false" style="--sw: var(--cat-2)"><span class="sw"></span>MM 20</button>
+      <button type="button" class="chip" data-ma="ma200" aria-pressed="false" style="--sw: var(--cat-3)"><span class="sw"></span>MM 200</button>
+      <span class="chart-note" id="ma-note"></span>
+    </div>
+    <div class="chart" id="chart"></div>
+    <div class="vol-wrap">
+      <h3>Volatilidad (30 registros, anualizada)</h3>
+      <p class="meta" id="vol-meta">&nbsp;</p>
+      <div class="chart small" id="vol-chart"></div>
+    </div>
+  </section>
+
+  <section class="card section-card" aria-labelledby="years-title">
+    <div class="chart-head">
+      <div>
+        <h2 id="years-title">Comparar años</h2>
+        <p class="meta" id="years-meta">Elige hasta 4 años</p>
+      </div>
+      <div class="range" id="years-mode" role="group" aria-label="Escala">
+        <button type="button" data-mode="value" aria-pressed="true">Valor COP</button>
+        <button type="button" data-mode="index" aria-pressed="false">Índice (1 ene = 100)</button>
+      </div>
+    </div>
+    <div class="years" id="years" role="group" aria-label="Años"></div>
+    <div class="chart" id="years-chart"></div>
+  </section>
+
+  <section class="card section-card" aria-labelledby="heat-title">
+    <div class="chart-head">
+      <div>
+        <h2 id="heat-title">Mapa de calor · variación diaria</h2>
+        <p class="meta" id="heat-meta">&nbsp;</p>
+      </div>
+      <label class="field" style="flex-direction:row;align-items:center;gap:8px">Año
+        <select id="heat-year"></select>
+      </label>
+    </div>
+    <div class="heat-wrap">
+      <div class="heat-scroll"><div class="heat-grid" id="heat-grid"></div></div>
+      <div class="tooltip" id="heat-tip"></div>
+    </div>
+    <div class="heat-legend">
+      <span class="lg-scale"><span id="lg-min">−</span><span class="lg-bar" aria-hidden="true"></span><span id="lg-max">+</span></span>
+      <span>Azul: el dólar bajó · Rojo: el dólar subió</span>
+      <span><span class="lg-covered" aria-hidden="true"></span>Sin nueva TRM (fin de semana o festivo)</span>
+    </div>
+  </section>
+
+  <section class="tools" aria-label="Herramientas">
+    <div class="card">
+      <h2>Consultar TRM por fecha</h2>
+      <label class="field">Fecha
+        <input type="date" id="q-date" min="1991-12-02">
+      </label>
+      <div class="result" aria-live="polite">
+        <div class="value" id="q-value">—</div>
+        <div class="meta" id="q-meta">&nbsp;</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Conversor</h2>
+      <div class="field-row">
+        <label class="field"><span>Monto en <span id="c-from">USD</span></span>
+          <input type="text" id="c-amount" inputmode="decimal" value="100" autocomplete="off">
+        </label>
+        <button type="button" class="btn-ghost" id="c-swap" aria-label="Invertir dirección de conversión">⇄ Invertir</button>
+      </div>
+      <div class="result" aria-live="polite">
+        <div class="value" id="c-value">—</div>
+        <div class="meta" id="c-meta">&nbsp;</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card table-card" aria-labelledby="table-title">
+    <div class="table-head">
+      <div>
+        <h2 id="table-title">Datos del rango seleccionado</h2>
+      </div>
+      <button type="button" class="btn-ghost" id="export">⤓ Exportar CSV</button>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th><button type="button" data-sort="desde">Vigente desde <span class="sort"></span></button></th>
+            <th>Vigente hasta</th>
+            <th class="num">Días</th>
+            <th class="num"><button type="button" data-sort="valor">TRM (COP) <span class="sort"></span></button></th>
+            <th class="num"><button type="button" data-sort="delta">Variación COP <span class="sort"></span></button></th>
+            <th class="num"><button type="button" data-sort="pct">Variación % <span class="sort"></span></button></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="pager">
+      <span id="pg-info">—</span>
+      <button type="button" class="btn-ghost" id="pg-prev">Anterior</button>
+      <button type="button" class="btn-ghost" id="pg-next">Siguiente</button>
+    </div>
+  </section>
+
+  <footer>
+    Fuente: Superintendencia Financiera de Colombia vía
+    <a href="https://www.datos.gov.co/Econom-a-y-Finanzas/Tasa-de-Cambio-Representativa-del-Mercado-TRM/32sa-8pi3" target="_blank" rel="noopener">datos.gov.co (32sa-8pi3)</a>
+    · Licencia <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.es" target="_blank" rel="noopener">CC BY-SA 4.0</a>
+  </footer>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const API = 'https://www.datos.gov.co/resource/32sa-8pi3.json';
+  const CACHE_KEY = 'trm-dashboard-v1';
+  const TZ = 'America/Bogota';
+
+  const fmtCOP = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtPct = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtAxis = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 });
+  const fmtStamp = new Intl.DateTimeFormat('es-CO', {
+    timeZone: TZ, day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', hour12: false
+  });
+  // Fechas "YYYY-MM-DD" se formatean en UTC para que no se corran un día.
+  const fmtDay = new Intl.DateTimeFormat('es-CO', { timeZone: 'UTC', day: 'numeric', month: 'short', year: 'numeric' });
+  const fmtDayShort = new Intl.DateTimeFormat('es-CO', { timeZone: 'UTC', day: 'numeric', month: 'short' });
+  const fmtMonth = new Intl.DateTimeFormat('es-CO', { timeZone: 'UTC', month: 'short', year: '2-digit' });
+  const fmtYear = new Intl.DateTimeFormat('es-CO', { timeZone: 'UTC', year: 'numeric' });
+
+  const $ = (id) => document.getElementById(id);
+  const state = {
+    rows: [], fetchedAt: null, range: '1y',
+    queryDate: null, convDir: 'usd2cop',
+    sort: { key: 'desde', dir: 'desc' }, page: 0,
+    ma: { ma20: false, ma200: false },
+    years: [], yearsInit: false, yearsMode: 'value', heatYear: null
+  };
+  try { Object.assign(state.ma, JSON.parse(localStorage.getItem('trm-dashboard-ma')) || {}); } catch (_) {}
+  const PAGE_SIZE = 20;
+
+  // ---------- utilidades de fecha ----------
+  const todayBogota = () => new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date()); // YYYY-MM-DD
+  const toMs = (ymd) => Date.parse(ymd + 'T00:00:00Z');
+  const dayLabel = (ymd) => fmtDay.format(toMs(ymd)).replace('.', '');
+  const vigencia = (r) => r.desde === r.hasta
+    ? dayLabel(r.desde)
+    : `${fmtDayShort.format(toMs(r.desde)).replace('.', '')} – ${dayLabel(r.hasta)}`;
+
+  // Índice del último registro con vigenciadesde <= ymd (búsqueda binaria), o -1.
+  function indexAtOrBefore(ymd) {
+    const a = state.rows;
+    let lo = 0, hi = a.length - 1, ans = -1;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (a[mid].desde <= ymd) { ans = mid; lo = mid + 1; } else hi = mid - 1;
+    }
+    return ans;
+  }
+  // Registro vigente en ymd: vigenciadesde <= ymd AND vigenciahasta >= ymd.
+  function findVigente(ymd) {
+    const i = indexAtOrBefore(ymd);
+    return i >= 0 && state.rows[i].hasta >= ymd ? { row: state.rows[i], index: i } : null;
+  }
+
+  // ---------- caché ----------
+  function loadCache() {
+    try {
+      const c = JSON.parse(localStorage.getItem(CACHE_KEY));
+      if (c && Array.isArray(c.rows) && c.rows.length) return c;
+    } catch (_) {}
+    return null;
+  }
+  function saveCache() {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ rows: state.rows, fetchedAt: state.fetchedAt })); } catch (_) {}
+  }
+
+  // ---------- API ----------
+  function normalize(raw) {
+    return raw
+      .map((r) => ({
+        valor: parseFloat(r.valor),
+        desde: String(r.vigenciadesde || '').slice(0, 10),
+        hasta: String(r.vigenciahasta || r.vigenciadesde || '').slice(0, 10)
+      }))
+      .filter((r) => Number.isFinite(r.valor) && r.desde.length === 10);
+  }
+
+  async function fetchRows(since) {
+    const p = new URLSearchParams({
+      '$select': 'valor,vigenciadesde,vigenciahasta',
+      '$order': 'vigenciadesde ASC',
+      '$limit': '50000'
+    });
+    if (since) p.set('$where', `vigenciadesde > '${since}T00:00:00.000'`);
+    const res = await fetch(`${API}?${p}`, { headers: { Accept: 'application/json' }, cache: 'no-store' });
+    if (!res.ok) throw new Error(`La API respondió ${res.status}`);
+    return normalize(await res.json());
+  }
+
+  function merge(rows) {
+    const map = new Map(state.rows.map((r) => [r.desde, r]));
+    rows.forEach((r) => map.set(r.desde, r));
+    state.rows = [...map.values()].sort((a, b) => (a.desde < b.desde ? -1 : 1));
+  }
+
+  async function refresh() {
+    const btn = $('refresh');
+    if (btn.disabled) return;
+    btn.disabled = true; btn.classList.add('loading');
+    try {
+      const last = state.rows.length ? state.rows[state.rows.length - 1].desde : null;
+      const fresh = await fetchRows(last);
+      merge(fresh);
+      state.fetchedAt = new Date().toISOString();
+      saveCache();
+      hideNotice();
+      render();
+    } catch (err) {
+      console.error(err);
+      if (state.rows.length) {
+        showNotice('warn', `No se pudo conectar con datos.gov.co. Se muestran datos en caché consultados el ${fmtStamp.format(new Date(state.fetchedAt))}.`);
+      } else {
+        showNotice('error', 'No se pudieron cargar los datos de la TRM. Verifica tu conexión e inténtalo de nuevo.');
+        chartEmpty(mainChart, 'Sin datos');
+      }
+    } finally {
+      btn.disabled = false; btn.classList.remove('loading');
+    }
+  }
+
+  function showNotice(kind, text) {
+    const n = $('notice');
+    n.className = `notice show ${kind}`;
+    $('notice-text').textContent = text;
+  }
+  function hideNotice() { $('notice').className = 'notice'; }
+
+  // ---------- render ----------
+  function render() {
+    if (!state.rows.length) return;
+    document.querySelectorAll('.skeleton').forEach((el) => el.classList.remove('skeleton'));
+    $('updated').textContent = `Última actualización: ${fmtStamp.format(new Date(state.fetchedAt))} (hora Colombia)`;
+
+    const today = todayBogota();
+    const rows = state.rows;
+    const hit = findVigente(today);
+    // sin registro para hoy: usar el último que ya empezó a regir
+    const idx = hit ? hit.index : indexAtOrBefore(today);
+    const cur = rows[idx];
+    const prev = rows[idx - 1];
+    const next = rows.slice(idx + 1).find((r) => r.desde > today);
+
+    if (cur) {
+      $('current-value').innerHTML = `${fmtCOP.format(cur.valor)}<small>COP</small>`;
+      $('current-meta').textContent = `Vigente: ${vigencia(cur)}`;
+    }
+
+    if (cur && prev) {
+      const d = cur.valor - prev.valor;
+      const pct = (d / prev.valor) * 100;
+      const arrow = d > 0 ? '▲' : d < 0 ? '▼' : '■';
+      const sign = d > 0 ? '+' : d < 0 ? '−' : '';
+      $('delta-value').innerHTML =
+        `<span class="delta-arrow" aria-hidden="true">${arrow}</span>${sign}${fmtCOP.format(Math.abs(d))}<small>COP · ${sign}${fmtPct.format(Math.abs(pct))} %</small>`;
+      const dir = d > 0 ? 'El dólar subió' : d < 0 ? 'El dólar bajó' : 'Sin cambio';
+      $('delta-meta').textContent = `${dir} · anterior ${fmtCOP.format(prev.valor)} (${vigencia(prev)})`;
+    } else {
+      $('delta-value').textContent = '—';
+      $('delta-meta').textContent = 'Sin TRM anterior';
+    }
+
+    $('next-value').classList.toggle('text', !next);
+    if (next) {
+      $('next-value').innerHTML = `${fmtCOP.format(next.valor)}<small>COP</small>`;
+      $('next-meta').textContent = `Regirá: ${vigencia(next)}`;
+    } else {
+      $('next-value').textContent = 'Aún no publicada';
+      $('next-meta').textContent = 'Se publica en la tarde del día hábil anterior';
+    }
+
+    render52(cur, today);
+    const qd = $('q-date');
+    qd.max = rows[rows.length - 1].hasta;
+    if (!state.queryDate) { state.queryDate = today; qd.value = today; }
+    renderQuery();
+    buildYearChips();
+    buildHeatSelect();
+    drawChart();
+    drawYears();
+    renderHeat();
+    renderTable();
+  }
+
+  // ---------- 52 semanas ----------
+  function render52(cur, today) {
+    const from = new Date(toMs(today) - 364 * 864e5).toISOString().slice(0, 10);
+    let lo = null, hi = null;
+    for (let i = state.rows.length - 1; i >= 0; i--) {
+      const r = state.rows[i];
+      if (r.hasta < from) break;
+      if (r.desde > today) continue;
+      if (!lo || r.valor < lo.valor) lo = r;
+      if (!hi || r.valor > hi.valor) hi = r;
+    }
+    if (!lo || !cur) return;
+    const span = hi.valor - lo.valor;
+    const pos = span ? ((cur.valor - lo.valor) / span) * 100 : 50;
+    $('r52-fill').style.width = `${pos}%`;
+    $('r52-mark').style.left = `${pos}%`;
+    $('r52-min').innerHTML = `Mín. ${fmtCOP.format(lo.valor)}<br>${dayLabel(lo.desde)}`;
+    $('r52-max').innerHTML = `Máx. ${fmtCOP.format(hi.valor)}<br>${dayLabel(hi.desde)}`;
+    const belowMax = hi.valor ? ((hi.valor - cur.valor) / hi.valor) * 100 : 0;
+    $('r52-meta').textContent = belowMax < 0.005
+      ? 'La TRM actual está en el máximo del año'
+      : `La TRM actual está ${fmtPct.format(belowMax)} % por debajo del máximo`;
+  }
+
+  // ---------- consulta por fecha + conversor ----------
+  function parseAmount(s) {
+    s = String(s).trim().replace(/\s|\$/g, '');
+    if (!s) return NaN;
+    const lastComma = s.lastIndexOf(','), lastDot = s.lastIndexOf('.');
+    if (lastComma > -1 && lastDot > -1) {
+      // el separador que aparece de último es el decimal
+      s = lastComma > lastDot ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, '');
+    } else if (lastComma > -1) {
+      s = s.replace(',', '.');
+    } else if ((s.match(/\./g) || []).length > 1 || /^\d{1,3}(\.\d{3})+$/.test(s)) {
+      s = s.replace(/\./g, ''); // 1.500.000 o 1.500 → miles
+    }
+    return Number(s);
+  }
+
+  function queryHit() {
+    return state.queryDate ? findVigente(state.queryDate) : null;
+  }
+
+  function renderQuery() {
+    const hit = queryHit();
+    $('q-value').classList.toggle('text', !hit);
+    if (hit) {
+      $('q-value').innerHTML = `${fmtCOP.format(hit.row.valor)}<small>COP</small>`;
+      const multi = hit.row.desde !== hit.row.hasta;
+      $('q-meta').textContent = multi
+        ? `TRM vigente del ${vigencia(hit.row)} (cubre fin de semana o festivo)`
+        : `TRM vigente el ${vigencia(hit.row)}`;
+    } else {
+      $('q-value').textContent = 'Sin TRM para esa fecha';
+      $('q-meta').textContent = state.queryDate
+        ? `Hay datos del ${dayLabel(state.rows[0].desde)} al ${dayLabel(state.rows[state.rows.length - 1].hasta)}`
+        : 'Elige una fecha';
+    }
+    renderConverter();
+  }
+
+  function renderConverter() {
+    const usd2cop = state.convDir === 'usd2cop';
+    $('c-from').textContent = usd2cop ? 'USD' : 'COP';
+    const hit = queryHit();
+    const amt = parseAmount($('c-amount').value);
+    if (!hit) {
+      $('c-value').textContent = '—';
+      $('c-meta').textContent = 'Elige una fecha con TRM en la consulta';
+      return;
+    }
+    if (!Number.isFinite(amt)) {
+      $('c-value').textContent = '—';
+      $('c-meta').textContent = 'Escribe un monto válido, p. ej. 1.500,50';
+      return;
+    }
+    const rate = hit.row.valor;
+    const out = usd2cop ? amt * rate : amt / rate;
+    $('c-value').innerHTML = `${fmtCOP.format(out)}<small>${usd2cop ? 'COP' : 'USD'}</small>`;
+    $('c-meta').textContent = `Usando TRM del ${vigencia(hit.row)}: ${fmtCOP.format(rate)}`;
+  }
+
+  // ---------- tabla ----------
+  function rangeData() {
+    const rows = state.rows;
+    const last = rows[rows.length - 1];
+    const tStart = rangeStart(last.desde, state.range);
+    let i0 = rows.findIndex((r) => toMs(r.desde) >= tStart);
+    if (i0 < 0) i0 = rows.length - 1;
+    return { data: rows.slice(i0), i0 };
+  }
+
+  function tableRows() {
+    const { data, i0 } = rangeData();
+    const out = data.map((r, k) => {
+      const prev = state.rows[i0 + k - 1];
+      const delta = prev ? r.valor - prev.valor : null;
+      return {
+        ...r,
+        dias: Math.round((toMs(r.hasta) - toMs(r.desde)) / 864e5) + 1,
+        delta,
+        pct: prev ? (delta / prev.valor) * 100 : null
+      };
+    });
+    const { key, dir } = state.sort;
+    const mul = dir === 'asc' ? 1 : -1;
+    out.sort((a, b) => {
+      const va = a[key], vb = b[key];
+      if (va === null) return 1;
+      if (vb === null) return -1;
+      return (va < vb ? -1 : va > vb ? 1 : 0) * mul;
+    });
+    return out;
+  }
+
+  const signed = (v, fmt) => v === null ? '—' : `${v > 0 ? '+' : v < 0 ? '−' : ''}${fmt.format(Math.abs(v))}`;
+
+  function renderTable() {
+    const all = tableRows();
+    const pages = Math.max(1, Math.ceil(all.length / PAGE_SIZE));
+    state.page = Math.min(state.page, pages - 1);
+    const start = state.page * PAGE_SIZE;
+    const slice = all.slice(start, start + PAGE_SIZE);
+    $('tbody').innerHTML = slice.map((r) => `<tr>
+        <td>${dayLabel(r.desde)}</td>
+        <td>${dayLabel(r.hasta)}</td>
+        <td class="num">${r.dias}</td>
+        <td class="num">${fmtCOP.format(r.valor)}</td>
+        <td class="num">${signed(r.delta, fmtCOP)}</td>
+        <td class="num">${r.pct === null ? '—' : signed(r.pct, fmtPct) + ' %'}</td>
+      </tr>`).join('');
+    const n = all.length.toLocaleString('es-CO');
+    $('pg-info').textContent = all.length
+      ? `${(start + 1).toLocaleString('es-CO')}–${(start + slice.length).toLocaleString('es-CO')} de ${n}`
+      : 'Sin registros';
+    $('pg-prev').disabled = state.page === 0;
+    $('pg-next').disabled = state.page >= pages - 1;
+    document.querySelectorAll('th button[data-sort]').forEach((b) => {
+      const on = b.dataset.sort === state.sort.key;
+      b.querySelector('.sort').textContent = on ? (state.sort.dir === 'asc' ? '▲' : '▼') : '';
+      b.closest('th').setAttribute('aria-sort', on ? (state.sort.dir === 'asc' ? 'ascending' : 'descending') : 'none');
+    });
+  }
+
+  function exportCSV() {
+    if (!state.rows.length) return;
+    const rows = tableRows().sort((a, b) => (a.desde < b.desde ? 1 : -1)); // más reciente primero
+    const num =(v, d = 2) => v === null ? '' : v.toFixed(d).replace('.', ',');
+    const lines = ['Vigente desde;Vigente hasta;Dias;TRM (COP);Variacion COP;Variacion %'];
+    rows.forEach((r) => lines.push([r.desde, r.hasta, r.dias, num(r.valor), num(r.delta), num(r.pct, 4)].join(';')));
+    const dates = rows.map((r) => r.desde).sort();
+    const name = `trm_${dates[0]}_${dates[dates.length - 1]}.csv`;
+    const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
+  // ---------- gráfico (SVG) ----------
+  function rangeStart(lastYmd, range) {
+    const d = new Date(toMs(lastYmd));
+    const sub = { '7d': [0, 0, 7], '1m': [0, 1, 0], '3m': [0, 3, 0], '6m': [0, 6, 0], '1y': [1, 0, 0], '5y': [5, 0, 0] }[range];
+    if (range === 'all') return -Infinity;
+    if (range === 'ytd') return Date.UTC(d.getUTCFullYear(), 0, 1);
+    d.setUTCFullYear(d.getUTCFullYear() - sub[0], d.getUTCMonth() - sub[1], d.getUTCDate() - sub[2]);
+    return d.getTime();
+  }
+
+  function niceTicks(min, max, count) {
+    const span = max - min || 1;
+    const raw = span / count;
+    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= raw);
+    const start = Math.floor(min / step) * step;
+    const ticks = [];
+    for (let v = start; v <= max + step * 0.5; v += step) ticks.push(+v.toFixed(6));
+    return ticks;
+  }
+
+  function timeTicks(t0, t1, width) {
+    const days = (t1 - t0) / 864e5;
+    const maxTicks = Math.max(2, Math.floor(width / 80));
+    const ticks = [];
+    let fmt;
+    if (days <= 45) {
+      const stepDays = Math.max(1, Math.ceil(days / maxTicks));
+      for (let t = t0; t <= t1; t += stepDays * 864e5) ticks.push(t);
+      fmt = (t) => fmtDayShort.format(t).replace('.', '');
+    } else if (days <= 800) {
+      const months = Math.max(1, Math.ceil(days / 30.4 / maxTicks));
+      const d = new Date(t0); d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth() + 1);
+      for (; d.getTime() <= t1; d.setUTCMonth(d.getUTCMonth() + months)) ticks.push(d.getTime());
+      fmt = (t) => fmtMonth.format(t).replace('.', '');
+    } else {
+      const years = Math.max(1, Math.ceil(days / 365.25 / maxTicks));
+      const y0 = new Date(t0).getUTCFullYear() + 1;
+      const yStart = Math.ceil(y0 / years) * years;
+      for (let y = yStart; Date.UTC(y, 0, 1) <= t1; y += years) ticks.push(Date.UTC(y, 0, 1));
+      fmt = (t) => fmtYear.format(t);
+    }
+    return { ticks, fmt };
+  }
+
+  // ---------- motor de gráficos de líneas (SVG) ----------
+  // Cada serie: { name, color, width, area, points: [{t, v, ...}], tEnd }
+  // Las líneas son escalonadas: cada valor se mantiene hasta el siguiente punto.
+  function createChart(el, label) {
+    el.innerHTML = `<svg role="img" aria-label="${label}"></svg><div class="tooltip"></div><div class="chart-empty">Cargando datos…</div>`;
+    const ch = { el, svg: el.querySelector('svg'), tip: el.querySelector('.tooltip'), empty: el.querySelector('.chart-empty'), cfg: null, geo: null };
+    const move = (ev) => chartHover(ch, ev);
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerdown', move);
+    el.addEventListener('pointerleave', () => chartHide(ch));
+    return ch;
+  }
+
+  function chartEmpty(ch, msg) {
+    ch.cfg = null; ch.geo = null; ch.svg.innerHTML = '';
+    ch.empty.textContent = msg; ch.empty.style.display = 'flex';
+    chartHide(ch);
+  }
+
+  function pointIndexAt(pts, t) { // último punto con p.t <= t
+    let lo = 0, hi = pts.length - 1, ans = -1;
+    while (lo <= hi) { const mid = (lo + hi) >> 1; if (pts[mid].t <= t) { ans = mid; lo = mid + 1; } else hi = mid - 1; }
+    return ans;
+  }
+
+  function drawLineChart(ch, cfg) {
+    const series = cfg.series.filter((s) => s.points.length);
+    if (!series.length) return chartEmpty(ch, cfg.emptyMsg || 'Sin datos');
+    ch.empty.style.display = 'none';
+    const box = ch.el.getBoundingClientRect();
+    const W = Math.max(240, box.width), H = Math.max(100, box.height);
+    const { t0, t1 } = cfg;
+
+    let vmin = Infinity, vmax = -Infinity;
+    series.forEach((s) => s.points.forEach((p) => { if (p.v < vmin) vmin = p.v; if (p.v > vmax) vmax = p.v; }));
+    const pad = (vmax - vmin) * 0.08 || Math.abs(vmax) * 0.01 || 1;
+    const lo = cfg.zero ? 0 : vmin - pad;
+    const yt = niceTicks(lo, vmax + pad, H < 200 ? 3 : H < 280 ? 4 : 5);
+    const y0 = yt[0], y1 = yt[yt.length - 1];
+    const yFmt = cfg.yFmt || ((v) => fmtAxis.format(v));
+
+    const ylabelW = Math.max(...yt.map((v) => yFmt(v).length)) * 7 + 10;
+    const m = { top: 10, right: cfg.directLabels ? 46 : 8, bottom: 26, left: ylabelW };
+    const iw = W - m.left - m.right, ih = H - m.top - m.bottom;
+    const x = (t) => m.left + ((t - t0) / (t1 - t0)) * iw;
+    const y = (v) => m.top + ih - ((v - y0) / (y1 - y0)) * ih;
+
+    const { ticks: xt, fmt: xfmt } = (cfg.xTicks || timeTicks)(t0, t1, iw);
+    let html = '<g class="axis">';
+    yt.forEach((v) => {
+      const yy = y(v).toFixed(1);
+      html += `<line class="gridline" x1="${m.left}" x2="${W - m.right}" y1="${yy}" y2="${yy}"/>`;
+      html += `<text x="${m.left - 8}" y="${yy}" dy="0.32em" text-anchor="end">${yFmt(v)}</text>`;
+    });
+    xt.forEach((t) => {
+      const xx = x(t);
+      if (xx < m.left + 12 || xx > W - m.right - 12) return;
+      html += `<text x="${xx.toFixed(1)}" y="${H - 6}" text-anchor="middle">${xfmt(t)}</text>`;
+    });
+    html += `<line class="baseline" x1="${m.left}" x2="${W - m.right}" y1="${m.top + ih}" y2="${m.top + ih}"/></g>`;
+
+    const labels = [];
+    series.forEach((s) => {
+      const end = Math.min(s.tEnd ?? t1, t1);
+      let d = '';
+      s.points.forEach((p, i) => {
+        const xs = x(Math.max(p.t, t0)).toFixed(1), yv = y(p.v).toFixed(1);
+        d += i === 0 ? `M${xs},${yv}` : `H${xs}V${yv}`;
+      });
+      d += `H${x(end).toFixed(1)}`;
+      if (s.area) html += `<path class="area" d="${d}V${(m.top + ih).toFixed(1)}H${x(Math.max(s.points[0].t, t0)).toFixed(1)}Z"/>`;
+      html += `<path class="line" style="stroke:${s.color};stroke-width:${s.width || 2}" d="${d}"/>`;
+      if (cfg.directLabels) labels.push({ s, x: x(end), y: y(s.points[s.points.length - 1].v) });
+    });
+
+    // etiquetas directas al final de cada línea, separadas para que no se encimen
+    if (labels.length) {
+      labels.sort((a, b) => a.y - b.y);
+      for (let i = 1; i < labels.length; i++) if (labels[i].y - labels[i - 1].y < 14) labels[i].y = labels[i - 1].y + 14;
+      const over = labels[labels.length - 1].y - (m.top + ih);
+      if (over > 0) labels.forEach((l) => { l.y -= over; });
+      labels.forEach((l) => {
+        html += `<circle cx="${(l.x + 7).toFixed(1)}" cy="${l.y.toFixed(1)}" r="4" style="fill:${l.s.color}"/>`;
+        html += `<text class="dlabel" x="${(l.x + 14).toFixed(1)}" y="${l.y.toFixed(1)}" dy="0.32em">${l.s.name}</text>`;
+      });
+    }
+
+    html += `<line class="cross" y1="${m.top}" y2="${m.top + ih}" style="display:none"/>`;
+    series.forEach((s, k) => { html += `<circle class="dot" data-dot="${k}" r="4.5" style="fill:${s.color};display:none"/>`; });
+    ch.svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    ch.svg.innerHTML = html;
+    ch.cfg = cfg;
+    ch.geo = { x, y, t0, t1, m, iw, W, series };
+    return { vmin, vmax };
+  }
+
+  function chartHover(ch, ev) {
+    const g = ch.geo;
+    if (!g) return;
+    const rect = ch.svg.getBoundingClientRect();
+    const scale = g.W / rect.width;
+    const px = (ev.clientX - rect.left) * scale;
+    if (px < g.m.left || px > g.m.left + g.iw) return chartHide(ch);
+    const t = g.t0 + ((px - g.m.left) / g.iw) * (g.t1 - g.t0);
+    const hits = [];
+    let topY = Infinity;
+    g.series.forEach((s, k) => {
+      const dot = ch.svg.querySelector(`[data-dot="${k}"]`);
+      const i = pointIndexAt(s.points, t);
+      if (i < 0 || t > (s.tEnd ?? g.t1)) { dot.style.display = 'none'; return; }
+      const p = s.points[i], cy = g.y(p.v);
+      dot.setAttribute('cx', px); dot.setAttribute('cy', cy); dot.style.display = '';
+      topY = Math.min(topY, cy);
+      hits.push({ s, p });
+    });
+    if (!hits.length) return chartHide(ch);
+    const cross = ch.svg.querySelector('.cross');
+    cross.setAttribute('x1', px); cross.setAttribute('x2', px); cross.style.display = '';
+    ch.tip.innerHTML = ch.cfg.tooltip(t, hits);
+    ch.tip.style.display = 'block';
+    const tw = ch.tip.offsetWidth, th = ch.tip.offsetHeight;
+    let left = px / scale + 12;
+    if (left + tw > rect.width) left = px / scale - tw - 12;
+    ch.tip.style.left = `${Math.max(0, left)}px`;
+    ch.tip.style.top = `${Math.max(0, Math.min(topY / scale - th - 8, rect.height - th))}px`;
+  }
+
+  function chartHide(ch) {
+    ch.svg.querySelectorAll('.cross, .dot').forEach((el) => { el.style.display = 'none'; });
+    ch.tip.style.display = 'none';
+  }
+
+  const tipRow = (color, name, val) =>
+    `<div class="t-row"><span class="sw" style="--sw:${color}"></span>${name}<b>${val}</b></div>`;
+
+  // ---------- series derivadas (se calculan una vez por cambio de datos) ----------
+  let derived = { key: null };
+  function getDerived() {
+    const rows = state.rows;
+    const key = `${rows.length}|${rows.length ? rows[rows.length - 1].desde : ''}`;
+    if (derived.key === key) return derived;
+    const n = rows.length;
+    const sma = (w) => {
+      const out = new Array(n).fill(null);
+      let sum = 0;
+      for (let i = 0; i < n; i++) {
+        sum += rows[i].valor;
+        if (i >= w) sum -= rows[i - w].valor;
+        if (i >= w - 1) out[i] = sum / w;
+      }
+      return out;
+    };
+    const ret = new Array(n).fill(null); // variación diaria %
+    for (let i = 1; i < n; i++) ret[i] = ((rows[i].valor - rows[i - 1].valor) / rows[i - 1].valor) * 100;
+    const VW = 30, vol = new Array(n).fill(null);
+    for (let i = VW; i < n; i++) {
+      let s = 0, s2 = 0;
+      for (let k = i - VW + 1; k <= i; k++) { s += ret[k]; s2 += ret[k] * ret[k]; }
+      const mean = s / VW;
+      const variance = Math.max(0, (s2 - VW * mean * mean) / (VW - 1));
+      vol[i] = Math.sqrt(variance) * Math.sqrt(252);
+    }
+    derived = { key, ma20: sma(20), ma200: sma(200), ret, vol };
+    return derived;
+  }
+
+  // ---------- histórico + medias móviles ----------
+  let mainChart, volChart, yearsChart;
+  const MA = { ma20: { name: 'MM 20', color: 'var(--cat-2)', need: 20 }, ma200: { name: 'MM 200', color: 'var(--cat-3)', need: 200 } };
+
+  function mainBounds() {
+    const rows = state.rows;
+    const { data, i0 } = rangeData();
+    const last = rows[rows.length - 1];
+    const t0 = toMs(data[0].desde);
+    const t1 = Math.max(toMs(last.hasta) + 864e5, t0 + 864e5); // el último escalón llega al fin de su vigencia
+    return { data, i0, t0, t1, last };
+  }
+
+  function drawChart() {
+    if (!state.rows.length) return;
+    const D = getDerived();
+    const { data, i0, t0, t1, last } = mainBounds();
+    const series = [{
+      name: 'TRM', color: 'var(--series)', width: 2, area: true,
+      points: data.map((r) => ({ t: toMs(r.desde), v: r.valor, row: r }))
+    }];
+    const missing = [];
+    Object.entries(MA).forEach(([k, def]) => {
+      if (!state.ma[k]) return;
+      const pts = [];
+      for (let j = 0; j < data.length; j++) {
+        const v = D[k][i0 + j];
+        if (v !== null) pts.push({ t: toMs(data[j].desde), v });
+      }
+      if (pts.length) series.push({ name: def.name, color: def.color, width: 1.5, points: pts });
+      else missing.push(def.name);
+    });
+    $('ma-note').textContent = missing.length
+      ? `Datos insuficientes: ${missing.map((n) => `${n} necesita ${n === 'MM 20' ? 20 : 200} registros`).join(' y ')}` : '';
+
+    const r = drawLineChart(mainChart, {
+      series, t0, t1,
+      tooltip: (t, hits) => {
+        const trm = hits.find((h) => h.s.name === 'TRM');
+        let h = trm ? `<div class="t-date">${vigencia(trm.p.row)}</div><div class="t-val">${fmtCOP.format(trm.p.v)} COP</div>` : '';
+        if (hits.length > 1) h += hits.filter((x) => x.s.name !== 'TRM').map((x) => tipRow(x.s.color, x.s.name, fmtCOP.format(x.p.v))).join('');
+        return h;
+      }
+    });
+
+    const first = data[0];
+    const vals = data.map((d) => d.valor);
+    const vmin = Math.min(...vals), vmax = Math.max(...vals);
+    const change = last.valor - first.valor;
+    const pct = (change / first.valor) * 100;
+    const sign = change > 0 ? '+' : change < 0 ? '−' : '';
+    $('chart-meta').textContent =
+      `${dayLabel(first.desde)} – ${dayLabel(last.hasta)} · ${data.length.toLocaleString('es-CO')} registros · ` +
+      `mín. ${fmtCOP.format(vmin)} · máx. ${fmtCOP.format(vmax)} · cambio ${sign}${fmtPct.format(Math.abs(pct))} %`;
+    drawVol();
+    return r;
+  }
+
+  // ---------- volatilidad ----------
+  const fmtVol = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 1 });
+  function drawVol() {
+    const D = getDerived();
+    const { data, i0, t0, t1 } = mainBounds();
+    const pts = [];
+    for (let j = 0; j < data.length; j++) {
+      const v = D.vol[i0 + j];
+      if (v !== null) pts.push({ t: toMs(data[j].desde), v, row: data[j] });
+    }
+    if (!pts.length) {
+      chartEmpty(volChart, 'Datos insuficientes (se necesitan al menos 31 registros)');
+      $('vol-meta').textContent = 'Desviación estándar de las variaciones diarias de los últimos 30 registros, ×√252.';
+      return;
+    }
+    const avg = pts.reduce((a, p) => a + p.v, 0) / pts.length;
+    $('vol-meta').textContent = `Actual: ${fmtVol.format(pts[pts.length - 1].v)} % · promedio del rango: ${fmtVol.format(avg)} %`;
+    drawLineChart(volChart, {
+      series: [{ name: 'Volatilidad', color: 'var(--series)', width: 1.5, area: true, points: pts }],
+      t0, t1, zero: true,
+      yFmt: (v) => `${fmtVol.format(v)} %`,
+      tooltip: (t, hits) => `<div class="t-date">${vigencia(hits[0].p.row)}</div><div class="t-val">${fmtVol.format(hits[0].p.v)} %</div>`
+    });
+  }
+
+  // ---------- comparar años ----------
+  const YEAR_SLOTS = 4;
+  const fmtMonthOnly = new Intl.DateTimeFormat('es-CO', { timeZone: 'UTC', month: 'short' });
+  const baseT = (ymd) => Date.UTC(2000, +ymd.slice(5, 7) - 1, +ymd.slice(8, 10)); // 2000 es bisiesto: cabe el 29 feb
+
+  function availableYears() {
+    const rows = state.rows;
+    if (!rows.length) return [];
+    const a = +rows[0].desde.slice(0, 4), b = +rows[rows.length - 1].desde.slice(0, 4);
+    const out = [];
+    for (let y = b; y >= a; y--) out.push(y);
+    return out;
+  }
+
+  function buildYearChips() {
+    const years = availableYears();
+    const have = new Set(years);
+    state.years = state.years.filter((s) => have.has(s.y));
+    if (!state.yearsInit) {
+      state.yearsInit = true;
+      years.slice(0, 3).forEach((y, i) => state.years.push({ y, slot: i }));
+    }
+    const full = state.years.length >= YEAR_SLOTS;
+    $('years').innerHTML = years.map((y) => {
+      const sel = state.years.find((s) => s.y === y);
+      const style = sel ? ` style="--sw: var(--cat-${sel.slot + 1})"` : '';
+      return `<button type="button" class="chip" data-year="${y}" aria-pressed="${!!sel}"${!sel && full ? ' disabled' : ''}${style}><span class="sw"></span>${y}</button>`;
+    }).join('');
+    $('years-meta').textContent = full ? 'Máximo 4 años: quita uno para agregar otro' : 'Elige hasta 4 años';
+  }
+
+  function toggleYear(y) {
+    const i = state.years.findIndex((s) => s.y === y);
+    if (i >= 0) state.years.splice(i, 1);
+    else if (state.years.length < YEAR_SLOTS) {
+      // el color se asigna al marcar y se conserva: primer slot libre
+      const used = new Set(state.years.map((s) => s.slot));
+      let slot = 0; while (used.has(slot)) slot++;
+      state.years.push({ y, slot });
+    }
+    buildYearChips();
+    drawYears();
+  }
+
+  function drawYears() {
+    if (!state.rows.length) return;
+    const rows = state.rows;
+    const last = rows[rows.length - 1];
+    const indexMode = state.yearsMode === 'index';
+    const END = Date.UTC(2001, 0, 1);
+    const series = [...state.years].sort((a, b) => a.y - b.y).map(({ y, slot }) => {
+      const pts = [];
+      const startHit = findVigente(`${y}-01-01`);
+      if (startHit) pts.push({ t: Date.UTC(2000, 0, 1), v: startHit.row.valor, row: startHit.row });
+      for (let i = indexAtOrBefore(`${y}-01-01`) + 1; i < rows.length && rows[i].desde.startsWith(String(y)); i++) {
+        pts.push({ t: baseT(rows[i].desde), v: rows[i].valor, row: rows[i] });
+      }
+      const base = pts.length ? pts[0].v : 1;
+      if (indexMode) pts.forEach((p) => { p.raw = p.v; p.v = (p.v / base) * 100; });
+      let tEnd = END;
+      if (last.hasta.startsWith(String(y))) tEnd = Math.min(baseT(last.hasta) + 864e5, END);
+      return { name: String(y), color: `var(--cat-${slot + 1})`, width: 2, points: pts, tEnd };
+    });
+    drawLineChart(yearsChart, {
+      series, t0: Date.UTC(2000, 0, 1), t1: END, directLabels: true,
+      emptyMsg: 'Elige al menos un año',
+      yFmt: indexMode ? (v) => fmtVol.format(v) : undefined,
+      xTicks: (t0, t1, iw) => {
+        const step = iw / 12 >= 44 ? 1 : iw / 12 >= 26 ? 2 : 3;
+        const ticks = [];
+        for (let mth = 0; mth < 12; mth += step) ticks.push(Date.UTC(2000, mth, 15));
+        return { ticks, fmt: (t) => fmtMonthOnly.format(t).replace('.', '') };
+      },
+      tooltip: (t, hits) => {
+        let h = `<div class="t-date">${fmtDayShort.format(t).replace('.', '')}</div>`;
+        hits.sort((a, b) => b.p.v - a.p.v).forEach((x) => {
+          const val = indexMode
+            ? `${fmtVol.format(x.p.v)} <span style="font-weight:400;color:var(--text-2)">(${fmtCOP.format(x.p.raw)})</span>`
+            : fmtCOP.format(x.p.v);
+          h += tipRow(x.s.color, x.s.name, val);
+        });
+        return h;
+      }
+    });
+  }
+
+  // ---------- mapa de calor ----------
+  const MONTHS = Array.from({ length: 12 }, (_, i) => fmtMonthOnly.format(Date.UTC(2000, i, 1)).replace('.', ''));
+  const fmtPct1 = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  function buildHeatSelect() {
+    const years = availableYears();
+    const sel = $('heat-year');
+    if (!state.heatYear || !years.includes(state.heatYear)) state.heatYear = years[0];
+    sel.innerHTML = years.map((y) => `<option value="${y}"${y === state.heatYear ? ' selected' : ''}>${y}</option>`).join('');
+  }
+
+  function renderHeat() {
+    if (!state.rows.length) return;
+    const rows = state.rows, D = getDerived();
+    const y = state.heatYear, ys = String(y);
+    const starts = new Map();
+    for (let i = Math.max(0, indexAtOrBefore(`${y}-01-01`)); i < rows.length; i++) {
+      const r = rows[i];
+      if (r.desde > `${y}-12-31`) break;
+      if (r.desde.startsWith(ys)) starts.set(r.desde, { r, pct: D.ret[i] });
+    }
+    const withPct = [...starts.values()].filter((v) => v.pct !== null);
+    const abs = withPct.map((s) => Math.abs(s.pct)).sort((a, b) => a - b);
+    const lim = Math.max(0.05, abs.length ? abs[Math.min(abs.length - 1, Math.floor(abs.length * 0.95))] : 0.05);
+    const lastHasta = rows[rows.length - 1].hasta;
+
+    let html = '<div></div>';
+    for (let d = 1; d <= 31; d++) html += `<div class="hl">${d % 5 === 0 || d === 1 ? d : ''}</div>`;
+    for (let mth = 0; mth < 12; mth++) {
+      html += `<div class="hl hm">${MONTHS[mth]}</div>`;
+      const dim = new Date(Date.UTC(y, mth + 1, 0)).getUTCDate();
+      for (let d = 1; d <= 31; d++) {
+        if (d > dim) { html += '<div></div>'; continue; }
+        const ymd = `${ys}-${String(mth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const s = starts.get(ymd);
+        if (s && s.pct === null) {
+          html += `<div class="hc covered" data-tip="${dayLabel(ymd)} · ${fmtCOP.format(s.r.valor)} COP · sin TRM anterior para comparar"></div>`;
+        } else if (s) {
+          const a = Math.round(Math.min(1, Math.abs(s.pct) / lim) * 100);
+          const pole = s.pct > 0 ? 'var(--div-pos)' : 'var(--div-neg)';
+          const bg = s.pct === 0 ? 'var(--div-mid)' : `color-mix(in oklab, ${pole} ${a}%, var(--div-mid))`;
+          const sign = s.pct > 0 ? '+' : s.pct < 0 ? '−' : '';
+          const tip = `${dayLabel(ymd)} · ${fmtCOP.format(s.r.valor)} COP · ${sign}${fmtPct1.format(Math.abs(s.pct))} %`;
+          html += `<div class="hc val" style="background:${bg}" data-tip="${tip}" aria-label="${tip}" role="img"></div>`;
+        } else if (ymd <= lastHasta && findVigente(ymd)) {
+          html += `<div class="hc covered" data-tip="${dayLabel(ymd)} · sin nueva TRM (rige la anterior)"></div>`;
+        } else {
+          html += '<div class="hc empty"></div>';
+        }
+      }
+    }
+    $('heat-grid').innerHTML = html;
+    $('lg-min').textContent = `−${fmtPct1.format(lim)} %`;
+    $('lg-max').textContent = `+${fmtPct1.format(lim)} %`;
+
+    const vals = withPct;
+    if (vals.length) {
+      const up = vals.filter((v) => v.pct > 0).length, down = vals.filter((v) => v.pct < 0).length;
+      const mx = vals.reduce((a, b) => (b.pct > a.pct ? b : a)), mn = vals.reduce((a, b) => (b.pct < a.pct ? b : a));
+      $('heat-meta').textContent =
+        `${vals.length} TRM nuevas en ${y} · subió ${up} ${up === 1 ? 'vez' : 'veces'}, bajó ${down} ${down === 1 ? 'vez' : 'veces'} · mayor alza +${fmtPct1.format(mx.pct)} % (${dayLabel(mx.r.desde)}) · ` +
+        `mayor baja −${fmtPct1.format(Math.abs(mn.pct))} % (${dayLabel(mn.r.desde)})`;
+    } else {
+      $('heat-meta').textContent = `Sin variaciones para ${y}`;
+    }
+  }
+
+  function heatHover(ev) {
+    const cell = ev.target.closest('[data-tip]');
+    const tip = $('heat-tip');
+    if (!cell) { tip.style.display = 'none'; return; }
+    tip.textContent = cell.dataset.tip;
+    tip.style.display = 'block';
+    const wrap = $('heat-grid').closest('.heat-wrap').getBoundingClientRect();
+    const c = cell.getBoundingClientRect();
+    let left = c.left - wrap.left + c.width / 2 - tip.offsetWidth / 2;
+    left = Math.max(0, Math.min(left, wrap.width - tip.offsetWidth));
+    tip.style.left = `${left}px`;
+    tip.style.top = `${c.top - wrap.top - tip.offsetHeight - 6}px`;
+  }
+
+  function redrawAll() {
+    drawChart();
+    drawYears();
+  }
+
+  // ---------- eventos ----------
+  $('refresh').addEventListener('click', refresh);
+  $('retry').addEventListener('click', refresh);
+  $('range').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-range]');
+    if (!b) return;
+    state.range = b.dataset.range;
+    document.querySelectorAll('#range button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    chartHide(mainChart); chartHide(volChart);
+    state.page = 0;
+    if (!state.rows.length) return;
+    drawChart();
+    renderTable();
+  });
+  document.querySelector('.chart-opts').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-ma]');
+    if (!b) return;
+    state.ma[b.dataset.ma] = !state.ma[b.dataset.ma];
+    b.setAttribute('aria-pressed', String(state.ma[b.dataset.ma]));
+    try { localStorage.setItem('trm-dashboard-ma', JSON.stringify(state.ma)); } catch (_) {}
+    if (state.rows.length) drawChart();
+  });
+  $('years').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-year]');
+    if (b && !b.disabled) toggleYear(+b.dataset.year);
+  });
+  $('years-mode').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-mode]');
+    if (!b) return;
+    state.yearsMode = b.dataset.mode;
+    document.querySelectorAll('#years-mode button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    drawYears();
+  });
+  $('heat-year').addEventListener('change', (e) => { state.heatYear = +e.target.value; renderHeat(); });
+  $('heat-grid').addEventListener('pointerover', heatHover);
+  $('heat-grid').addEventListener('pointerdown', heatHover);
+  $('heat-grid').addEventListener('pointerleave', () => { $('heat-tip').style.display = 'none'; });
+  $('q-date').addEventListener('input', (e) => {
+    state.queryDate = e.target.value || null;
+    if (state.rows.length) renderQuery();
+  });
+  $('c-amount').addEventListener('input', () => { if (state.rows.length) renderConverter(); });
+  $('c-swap').addEventListener('click', () => {
+    // al invertir, el resultado actual pasa a ser el nuevo monto
+    const hit = queryHit();
+    const amt = parseAmount($('c-amount').value);
+    if (hit && Number.isFinite(amt)) {
+      const out = state.convDir === 'usd2cop' ? amt * hit.row.valor : amt / hit.row.valor;
+      $('c-amount').value = fmtCOP.format(out);
+    }
+    state.convDir = state.convDir === 'usd2cop' ? 'cop2usd' : 'usd2cop';
+    if (state.rows.length) renderConverter();
+  });
+  document.querySelector('thead').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-sort]');
+    if (!b) return;
+    const key = b.dataset.sort;
+    state.sort = state.sort.key === key
+      ? { key, dir: state.sort.dir === 'asc' ? 'desc' : 'asc' }
+      : { key, dir: 'desc' };
+    state.page = 0;
+    renderTable();
+  });
+  $('pg-prev').addEventListener('click', () => { state.page--; renderTable(); });
+  $('pg-next').addEventListener('click', () => { state.page++; renderTable(); });
+  $('export').addEventListener('click', exportCSV);
+  mainChart = createChart($('chart'), 'Gráfico del histórico de la TRM');
+  volChart = createChart($('vol-chart'), 'Gráfico de volatilidad de la TRM');
+  yearsChart = createChart($('years-chart'), 'Comparación de la TRM por año');
+  document.querySelectorAll('button[data-ma]').forEach((b) => b.setAttribute('aria-pressed', String(!!state.ma[b.dataset.ma])));
+  let rz;
+  window.addEventListener('resize', () => {
+    clearTimeout(rz);
+    rz = setTimeout(() => { [mainChart, volChart, yearsChart].forEach(chartHide); if (state.rows.length) redrawAll(); }, 120);
+  });
+
+  // ---------- inicio ----------
+  const cached = loadCache();
+  if (cached) {
+    state.rows = cached.rows;
+    state.fetchedAt = cached.fetchedAt;
+    render();
+  }
+  refresh();
+})();
+</script>
+</body>
+</html>
